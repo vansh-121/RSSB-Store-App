@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../models/store_item.dart';
@@ -28,6 +28,8 @@ class InventoryProvider extends ChangeNotifier {
   StreamSubscription? _logsSub;
   StreamSubscription? _connectivitySub;
 
+  ThemeMode _themeMode = ThemeMode.system;
+
   // Getters
   String get storeCode => _storeCode;
   String get volunteerName => _volunteerName.isEmpty ? 'Seva Volunteer' : _volunteerName;
@@ -37,6 +39,7 @@ class InventoryProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isLiveSyncing => _isLiveSyncing;
   bool get isOnline => _isOnline;
+  ThemeMode get themeMode => _themeMode;
   List<StockLog> get logs => List.unmodifiable(_logs);
 
   final bool autoSync;
@@ -52,6 +55,15 @@ class InventoryProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     _storeCode = prefs.getString('store_code') ?? 'RSSB-MAIN-STORE';
     _volunteerName = prefs.getString('volunteer_name') ?? '';
+
+    final themeStr = prefs.getString('theme_mode') ?? 'system';
+    if (themeStr == 'light') {
+      _themeMode = ThemeMode.light;
+    } else if (themeStr == 'dark') {
+      _themeMode = ThemeMode.dark;
+    } else {
+      _themeMode = ThemeMode.system;
+    }
 
     // Load local cached items first
     await _loadLocalItems(prefs);
@@ -72,6 +84,16 @@ class InventoryProvider extends ChangeNotifier {
         }
       });
     } catch (_) {}
+  }
+
+  void setThemeMode(ThemeMode mode) async {
+    _themeMode = mode;
+    final prefs = await SharedPreferences.getInstance();
+    String val = 'system';
+    if (mode == ThemeMode.light) val = 'light';
+    if (mode == ThemeMode.dark) val = 'dark';
+    await prefs.setString('theme_mode', val);
+    notifyListeners();
   }
 
   void setStoreCode(String newCode) async {

@@ -27,13 +27,17 @@ class RSSBStoreApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => InventoryProvider(),
-      child: MaterialApp(
-        title: 'RSSB Store App',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        home: const HomeScreen(),
+      child: Consumer<InventoryProvider>(
+        builder: (context, provider, _) {
+          return MaterialApp(
+            title: 'RSSB Store App',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: provider.themeMode,
+            home: const HomeScreen(),
+          );
+        },
       ),
     );
   }

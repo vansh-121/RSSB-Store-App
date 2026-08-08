@@ -29,6 +29,7 @@ class ItemCard extends StatelessWidget {
     }
 
     final String personName = item.updatedBy.isEmpty ? "Seva Volunteer" : item.updatedBy;
+    final Color secondaryTextColor = isDark ? Colors.white70 : Colors.black87;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
@@ -54,20 +55,21 @@ class ItemCard extends StatelessWidget {
                           style: GoogleFonts.outfit(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Row(
                           children: [
                             if (item.location.isNotEmpty) ...[
-                              Icon(Icons.location_on_outlined, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                              Icon(Icons.location_on_outlined, size: 14, color: secondaryTextColor),
                               const SizedBox(width: 2),
                               Text(
                                 item.location,
                                 style: GoogleFonts.inter(
                                   fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                  fontWeight: FontWeight.w600,
+                                  color: secondaryTextColor,
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -128,8 +130,8 @@ class ItemCard extends StatelessWidget {
                               item.unit,
                               style: GoogleFonts.inter(
                                 fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                fontWeight: FontWeight.w600,
+                                color: secondaryTextColor,
                               ),
                             ),
                           ],
@@ -154,7 +156,7 @@ class ItemCard extends StatelessWidget {
                           if (val == 'edit') onEdit();
                           if (val == 'delete') onDelete();
                         },
-                        icon: Icon(Icons.more_vert, size: 18, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                        icon: Icon(Icons.more_vert, size: 18, color: secondaryTextColor),
                         padding: EdgeInsets.zero,
                         itemBuilder: (ctx) => [
                           const PopupMenuItem(
@@ -185,7 +187,7 @@ class ItemCard extends StatelessWidget {
               ),
 
               const SizedBox(height: 8),
-              const Divider(height: 1, thickness: 0.5),
+              Divider(height: 1, thickness: 0.5, color: isDark ? Colors.white12 : Colors.black12),
               const SizedBox(height: 6),
 
               // Separate Full-Width Line: Last Changed By [Person Name]
@@ -201,7 +203,8 @@ class ItemCard extends StatelessWidget {
                     'Last changed by ',
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                      color: secondaryTextColor,
                     ),
                   ),
                   Text(

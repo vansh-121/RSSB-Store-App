@@ -13,19 +13,19 @@ class AppTheme {
   static const Color warningOrange = Color(0xFFEF6C00);
   static const Color dangerRed = Color(0xFFC62828);
 
-  // Light Palette
+  // Light Palette - High Contrast Black & Crisp Text
   static const Color lightBg = Color(0xFFF8F9FA);
   static const Color lightSurface = Color(0xFFFFFFFF);
   static const Color lightCardBg = Color(0xFFFFFFFF);
-  static const Color lightTextPrimary = Color(0xFF1F2937);
-  static const Color lightTextSecondary = Color(0xFF6B7280);
+  static const Color lightTextPrimary = Color(0xFF111827); // Solid Crisp Black
+  static const Color lightTextSecondary = Color(0xFF374151); // Dark Slate Black
 
-  // Dark Palette
+  // Dark Palette - High Contrast Bright White Text
   static const Color darkBg = Color(0xFF111827);
   static const Color darkSurface = Color(0xFF1F2937);
   static const Color darkCardBg = Color(0xFF1F2937);
-  static const Color darkTextPrimary = Color(0xFFF9FAFB);
-  static const Color darkTextSecondary = Color(0xFF9CA3AF);
+  static const Color darkTextPrimary = Color(0xFFFFFFFF); // Pure Crisp White
+  static const Color darkTextSecondary = Color(0xFFE5E7EB); // Bright White-Grey
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -45,7 +45,7 @@ class AppTheme {
         shadowColor: Colors.black.withOpacity(0.08),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.grey.withOpacity(0.15)),
+          side: BorderSide(color: Colors.grey.withOpacity(0.2)),
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -71,11 +71,11 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: Colors.grey.shade400),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: Colors.grey.shade400),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -109,7 +109,7 @@ class AppTheme {
         shadowColor: Colors.black.withOpacity(0.3),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.white.withOpacity(0.08)),
+          side: BorderSide(color: Colors.white.withOpacity(0.12)),
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -135,11 +135,11 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade700),
+          borderSide: BorderSide(color: Colors.grey.shade600),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade700),
+          borderSide: BorderSide(color: Colors.grey.shade600),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

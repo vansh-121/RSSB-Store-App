@@ -244,6 +244,12 @@ class _HomeScreenState extends State<HomeScreen> {
             onSelected: (val) {
               if (val == 'name') {
                 _showVolunteerNameDialog(isFirstTime: false);
+              } else if (val == 'theme_system') {
+                provider.setThemeMode(ThemeMode.system);
+              } else if (val == 'theme_light') {
+                provider.setThemeMode(ThemeMode.light);
+              } else if (val == 'theme_dark') {
+                provider.setThemeMode(ThemeMode.dark);
               } else if (val == 'history') {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => const StockHistoryScreen()),
@@ -267,6 +273,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: provider.themeMode == ThemeMode.light
+                    ? 'theme_dark'
+                    : (provider.themeMode == ThemeMode.dark ? 'theme_system' : 'theme_light'),
+                child: Row(
+                  children: [
+                    Icon(
+                      provider.themeMode == ThemeMode.light
+                          ? Icons.dark_mode_outlined
+                          : (provider.themeMode == ThemeMode.dark
+                              ? Icons.brightness_auto_outlined
+                              : Icons.light_mode_outlined),
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      provider.themeMode == ThemeMode.light
+                          ? 'Switch to Dark Mode'
+                          : (provider.themeMode == ThemeMode.dark
+                              ? 'Use System Theme'
+                              : 'Switch to Light Mode'),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
               const PopupMenuItem(
                 value: 'history',
                 child: Row(
