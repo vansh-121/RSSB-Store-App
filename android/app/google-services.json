@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "721190224150",
+    "project_id": "rssb-store-app",
+    "storage_bucket": "rssb-store-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:721190224150:android:d6bd716ca214809b815037",
+        "android_client_info": {
+          "package_name": "com.rssb.store.rssb_store_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFmA5fGcAEa8x_d9APpFojISuISXeq_MQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
