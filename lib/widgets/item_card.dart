@@ -21,11 +21,11 @@ class ItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    Color statusColor = AppTheme.primaryTeal;
+    Color statusColor = isDark ? AppTheme.primaryLightTeal : AppTheme.primaryTeal;
     if (item.isOutOfStock) {
-      statusColor = AppTheme.dangerRed;
+      statusColor = isDark ? const Color(0xFFFF6B6B) : AppTheme.dangerRed;
     } else if (item.isLowStock) {
-      statusColor = AppTheme.warningOrange;
+      statusColor = isDark ? const Color(0xFFFFB74D) : AppTheme.warningOrange;
     }
 
     final String personName = item.updatedBy.isEmpty ? "Seva Volunteer" : item.updatedBy;
