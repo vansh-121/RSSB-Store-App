@@ -19,7 +19,6 @@ class LowStockReportScreen extends StatelessWidget {
 
       final buffer = StringBuffer();
       buffer.writeln('📋 *RSSB STORE REORDER REQUISITION LIST*');
-      buffer.writeln('Store Room Code: ${provider.storeCode}');
       buffer.writeln('Generated on: ${DateTime.now().toString().split('.')[0]}');
       buffer.writeln('-----------------------------------');
 

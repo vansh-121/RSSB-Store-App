@@ -17,21 +17,6 @@ class StockHistoryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Stock Activity Trail'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.sync),
-            tooltip: 'Live Sync Status',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Connected to Store Code: ${provider.storeCode}'),
-                  backgroundColor: AppTheme.primaryTeal,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: logs.isEmpty
           ? Center(

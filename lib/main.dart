@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'firebase_options.dart';
 import 'providers/inventory_provider.dart';
 import 'screens/home_screen.dart';
 import 'theme/app_theme.dart';
@@ -8,11 +9,12 @@ import 'theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Try initializing Firebase safely with fallback handling
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
-    debugPrint('Firebase init fallback: App running in offline local-sync mode. Error: $e');
+    debugPrint('Firebase init fallback: $e');
   }
 
   runApp(const RSSBStoreApp());

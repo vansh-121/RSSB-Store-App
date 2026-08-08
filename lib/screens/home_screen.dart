@@ -5,8 +5,6 @@ import '../models/store_item.dart';
 import '../providers/inventory_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/item_card.dart';
-import '../widgets/metric_card.dart';
-import '../widgets/store_code_dialog.dart';
 import 'add_edit_item_screen.dart';
 import 'stock_history_screen.dart';
 import 'low_stock_report_screen.dart';
@@ -22,19 +20,144 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkVolunteerNameOnLaunch();
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
-  void _openStoreCodeDialog() {
+  void _checkVolunteerNameOnLaunch() {
+    final provider = Provider.of<InventoryProvider>(context, listen: false);
+    if (!provider.isVolunteerNameSet) {
+      _showVolunteerNameDialog(isFirstTime: true);
+    }
+  }
+
+  void _showVolunteerNameDialog({bool isFirstTime = false}) {
+    final provider = Provider.of<InventoryProvider>(context, listen: false);
+    final textController = TextEditingController(
+        text: isFirstTime ? '' : (provider.isVolunteerNameSet ? provider.volunteerName : ''));
+
     showDialog(
       context: context,
-      builder: (context) => const StoreCodeDialog(),
+      barrierDismissible: !isFirstTime,
+      builder: (ctx) => PopScope(
+        canPop: !isFirstTime,
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryTeal.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.person_outline, color: AppTheme.primaryTeal),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isFirstTime ? 'Seva Volunteer Login' : 'Update Volunteer Name',
+                      style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Your name will be saved forever',
+                      style: GoogleFonts.inter(fontSize: 11, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Please enter your name. Every item addition, edit, or quantity change will be logged under your name.',
+                style: GoogleFonts.inter(fontSize: 12, color: Colors.grey[700]),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'YOUR SEVA VOLUNTEER NAME *',
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                  color: AppTheme.primaryTeal,
+                ),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: textController,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  hintText: 'e.g. Ramesh Kumar',
+                  prefixIcon: Icon(Icons.person),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            if (!isFirstTime)
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancel'),
+              ),
+            ElevatedButton(
+              onPressed: () {
+                final name = textController.text.trim();
+                if (name.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter your name to continue'),
+                      backgroundColor: AppTheme.dangerRed,
+                    ),
+                  );
+                  return;
+                }
+                provider.setVolunteerName(name);
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Welcome $name! Name saved permanently.'),
+                    backgroundColor: AppTheme.primaryTeal,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryTeal,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: Text(isFirstTime ? 'Save & Start' : 'Save Name'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   void _openAddEditScreen([StoreItem? item]) {
+    final provider = Provider.of<InventoryProvider>(context, listen: false);
+    if (!provider.isVolunteerNameSet) {
+      _showVolunteerNameDialog(isFirstTime: true);
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => AddEditItemScreen(initialItem: item),
@@ -46,8 +169,8 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Store Item?'),
-        content: Text('Are you sure you want to remove "${item.name}" from inventory?'),
+        title: const Text('Delete Item?'),
+        content: Text('Remove "${item.name}" from store inventory?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
@@ -58,13 +181,6 @@ class _HomeScreenState extends State<HomeScreen> {
               Provider.of<InventoryProvider>(context, listen: false)
                   .deleteItem(item.id);
               Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Deleted "${item.name}"'),
-                  backgroundColor: AppTheme.dangerRed,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.dangerRed,
@@ -80,70 +196,54 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<InventoryProvider>(context);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final items = provider.filteredItems;
 
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.store_mall_directory, size: 22),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                'RSSB Store',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
+        title: Text(
+          'RSSB Store',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         actions: [
-          // Live Sync Store Code Badge
-          Flexible(
-            child: InkWell(
-              onTap: _openStoreCodeDialog,
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                margin: const EdgeInsets.only(right: 2),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.3)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      provider.isLiveSyncing ? Icons.sensors : Icons.sync,
-                      color: provider.isLiveSyncing ? Colors.amberAccent : Colors.white,
-                      size: 13,
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        provider.storeCode,
-                        style: GoogleFonts.outfit(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+          // Volunteer Profile Name Chip (Tap to change name)
+          InkWell(
+            onTap: () => _showVolunteerNameDialog(isFirstTime: false),
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              margin: const EdgeInsets.only(right: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.18),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withOpacity(0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.person, color: Colors.white, size: 14),
+                  const SizedBox(width: 4),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 110),
+                    child: Text(
+                      provider.isVolunteerNameSet ? provider.volunteerName : 'Set Name',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
 
           PopupMenuButton<String>(
             onSelected: (val) {
-              if (val == 'history') {
+              if (val == 'name') {
+                _showVolunteerNameDialog(isFirstTime: false);
+              } else if (val == 'history') {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => const StockHistoryScreen()),
                 );
@@ -153,22 +253,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               } else if (val == 'clear') {
                 provider.clearAllItems();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Cleared all store items'),
-                    backgroundColor: AppTheme.warningOrange,
-                  ),
-                );
               }
             },
             itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'name',
+                child: Row(
+                  children: [
+                    const Icon(Icons.person_outline, size: 18),
+                    const SizedBox(width: 8),
+                    Text('Volunteer: ${provider.volunteerName}'),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: 'history',
                 child: Row(
                   children: [
                     Icon(Icons.history, size: 18),
                     SizedBox(width: 8),
-                    Text('Stock Activity Trail'),
+                    Text('Activity Trail'),
                   ],
                 ),
               ),
@@ -187,9 +291,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 value: 'clear',
                 child: Row(
                   children: [
-                    Icon(Icons.delete_sweep_outlined, color: AppTheme.dangerRed, size: 18),
+                    Icon(Icons.delete_sweep_outlined, color: Colors.red, size: 18),
                     SizedBox(width: 8),
-                    Text('Clear All Store Items', style: TextStyle(color: AppTheme.dangerRed)),
+                    Text('Clear All Items', style: TextStyle(color: Colors.red)),
                   ],
                 ),
               ),
@@ -198,83 +302,25 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
 
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(color: AppTheme.primaryTeal),
-              accountName: Text(
-                'RSSB Store & Inventory',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              accountEmail: Text(
-                'Connected Store Code: ${provider.storeCode}\nUser: ${provider.volunteerName}',
-                style: GoogleFonts.inter(fontSize: 12),
-              ),
-              currentAccountPicture: const CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(Icons.storefront, color: AppTheme.primaryTeal, size: 36),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.inventory),
-              title: const Text('Inventory Catalog'),
-              selected: true,
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.history),
-              title: const Text('Stock Activity Trail'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const StockHistoryScreen()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.warning_amber_rounded, color: AppTheme.warningOrange),
-              title: const Text('Low Stock Requisition'),
-              trailing: provider.lowStockCount > 0
-                  ? Badge(label: Text('${provider.lowStockCount}'))
-                  : null,
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const LowStockReportScreen()));
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.sync_alt),
-              title: const Text('Switch Store Code / User'),
-              subtitle: Text('Code: ${provider.storeCode}'),
-              onTap: () {
-                Navigator.pop(context);
-                _openStoreCodeDialog();
-              },
-            ),
-          ],
-        ),
-      ),
-
       body: Column(
         children: [
-          // Offline Internet Connection Warning Banner
+          // Offline Warning Banner
           if (!provider.isOnline)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               color: AppTheme.warningOrange,
               child: Row(
                 children: [
-                  const Icon(Icons.wifi_off_rounded, color: Colors.white, size: 20),
-                  const SizedBox(width: 10),
+                  const Icon(Icons.wifi_off_rounded, color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Please connect to internet to see live data updates.',
+                      'Offline mode - connect to internet for live sync.',
                       style: GoogleFonts.outfit(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                        fontSize: 12,
                       ),
                     ),
                   ),
@@ -282,112 +328,26 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-          // Top Statistics Dashboard Grid (KPIs)
-          Container(
-            padding: const EdgeInsets.all(14.0),
-            color: isDark ? AppTheme.darkSurface : Colors.teal.shade50.withOpacity(0.4),
-            child: Row(
-              children: [
-                Expanded(
-                  child: MetricCard(
-                    title: 'Total Items',
-                    value: '${provider.totalItemsCount}',
-                    subtitle: 'Unique Store Items',
-                    icon: Icons.inventory_2_outlined,
-                    color: AppTheme.primaryTeal,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: MetricCard(
-                    title: 'Low Stock',
-                    value: '${provider.lowStockCount}',
-                    subtitle: 'Items Need Refill',
-                    icon: Icons.warning_amber_rounded,
-                    color: AppTheme.warningOrange,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LowStockReportScreen()),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: MetricCard(
-                    title: 'Out of Stock',
-                    value: '${provider.outOfStockCount}',
-                    subtitle: 'Zero Stock Count',
-                    icon: Icons.cancel_outlined,
-                    color: AppTheme.dangerRed,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Search Bar & Filter Chips Section
+          // Simple Search Bar
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _searchController,
-                  onChanged: (val) => provider.setSearchQuery(val),
-                  decoration: InputDecoration(
-                    hintText: 'Search items by name, shelf, or category...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              provider.setSearchQuery('');
-                            },
-                          )
-                        : null,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildFilterChip(
-                        context,
-                        label: 'All Items (${provider.totalItemsCount})',
-                        filter: StockFilter.all,
-                        selected: provider.selectedFilter == StockFilter.all,
-                      ),
-                      const SizedBox(width: 8),
-                      _buildFilterChip(
-                        context,
-                        label: 'Low Stock (${provider.lowStockCount})',
-                        filter: StockFilter.lowStock,
-                        selected: provider.selectedFilter == StockFilter.lowStock,
-                        color: AppTheme.warningOrange,
-                      ),
-                      const SizedBox(width: 8),
-                      _buildFilterChip(
-                        context,
-                        label: 'In Stock (${provider.totalItemsCount - provider.lowStockCount - provider.outOfStockCount})',
-                        filter: StockFilter.inStock,
-                        selected: provider.selectedFilter == StockFilter.inStock,
-                        color: AppTheme.successGreen,
-                      ),
-                      const SizedBox(width: 8),
-                      _buildFilterChip(
-                        context,
-                        label: 'Out of Stock (${provider.outOfStockCount})',
-                        filter: StockFilter.outOfStock,
-                        selected: provider.selectedFilter == StockFilter.outOfStock,
-                        color: AppTheme.dangerRed,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            padding: const EdgeInsets.all(12.0),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (val) => provider.setSearchQuery(val),
+              decoration: InputDecoration(
+                hintText: 'Search store items...',
+                prefixIcon: const Icon(Icons.search, size: 20),
+                contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () {
+                          _searchController.clear();
+                          provider.setSearchQuery('');
+                        },
+                      )
+                    : null,
+              ),
             ),
           ),
 
@@ -400,17 +360,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
+                            Icon(Icons.inventory_2_outlined, size: 56, color: Colors.grey[400]),
                             const SizedBox(height: 12),
                             Text(
-                              'No matching store items found',
+                              'No store items found',
                               style: GoogleFonts.outfit(fontSize: 16, color: Colors.grey[600]),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 12),
                             ElevatedButton.icon(
                               onPressed: () => _openAddEditScreen(),
                               icon: const Icon(Icons.add),
-                              label: const Text('Add New Item'),
+                              label: const Text('Add Item'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.primaryTeal,
                                 foregroundColor: Colors.white,
@@ -420,13 +380,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         itemCount: items.length,
                         itemBuilder: (context, index) {
                           final item = items[index];
                           return ItemCard(
                             item: item,
                             onAdjustQuantity: (delta) {
+                              if (!provider.isVolunteerNameSet) {
+                                _showVolunteerNameDialog(isFirstTime: true);
+                                return;
+                              }
                               provider.adjustQuantity(item, delta);
                             },
                             onEdit: () => _openAddEditScreen(item),
@@ -438,39 +402,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
 
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () => _openAddEditScreen(),
-        icon: const Icon(Icons.add),
-        label: Text(
-          'Add Item',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
-        ),
+        tooltip: 'Add Store Item',
+        child: const Icon(Icons.add, size: 28),
       ),
-    );
-  }
-
-  Widget _buildFilterChip(
-    BuildContext context, {
-    required String label,
-    required StockFilter filter,
-    required bool selected,
-    Color? color,
-  }) {
-    final provider = Provider.of<InventoryProvider>(context, listen: false);
-    final activeColor = color ?? AppTheme.primaryTeal;
-
-    return FilterChip(
-      selected: selected,
-      label: Text(label),
-      labelStyle: TextStyle(
-        color: selected ? Colors.white : activeColor,
-        fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-        fontSize: 12,
-      ),
-      selectedColor: activeColor,
-      backgroundColor: activeColor.withOpacity(0.08),
-      side: BorderSide(color: activeColor.withOpacity(0.3)),
-      onSelected: (_) => provider.setFilter(filter),
     );
   }
 }

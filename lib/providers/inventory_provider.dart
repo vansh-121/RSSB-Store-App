@@ -30,7 +30,8 @@ class InventoryProvider extends ChangeNotifier {
 
   // Getters
   String get storeCode => _storeCode;
-  String get volunteerName => _volunteerName;
+  String get volunteerName => _volunteerName.isEmpty ? 'Seva Volunteer' : _volunteerName;
+  bool get isVolunteerNameSet => _volunteerName.trim().isNotEmpty;
   String get searchQuery => _searchQuery;
   StockFilter get selectedFilter => _selectedFilter;
   bool get isLoading => _isLoading;
@@ -50,7 +51,7 @@ class InventoryProvider extends ChangeNotifier {
 
     final prefs = await SharedPreferences.getInstance();
     _storeCode = prefs.getString('store_code') ?? 'RSSB-MAIN-STORE';
-    _volunteerName = prefs.getString('volunteer_name') ?? 'Seva Volunteer';
+    _volunteerName = prefs.getString('volunteer_name') ?? '';
 
     // Load local cached items first
     await _loadLocalItems(prefs);
@@ -250,6 +251,23 @@ class InventoryProvider extends ChangeNotifier {
 
   // Delete Item
   Future<void> deleteItem(String itemId) async {
+    final itemIndex = _items.indexWhere((item) => item.id == itemId);
+    if (itemIndex != -1) {
+      final deletedItem = _items[itemIndex];
+      final log = StockLog(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        itemId: itemId,
+        itemName: deletedItem.name,
+        changeAmount: 0,
+        newQuantity: 0,
+        unit: deletedItem.unit,
+        action: 'Item Deleted',
+        volunteerName: volunteerName,
+      );
+      _logs.insert(0, log);
+      _saveLocalLogs();
+    }
+
     _items.removeWhere((item) => item.id == itemId);
     _saveLocalItems();
     notifyListeners();
