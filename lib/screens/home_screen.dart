@@ -196,6 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<InventoryProvider>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final items = provider.filteredItems;
 
     return Scaffold(
@@ -327,6 +328,58 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+
+          // Radha Soami Ji Spiritual Greeting Banner
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.fromLTRB(12, 10, 12, 2),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF004D40), const Color(0xFF00695C)]
+                    : [const Color(0xFFE0F2F1), const Color(0xFFB2DFDB)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark
+                    ? AppTheme.primaryLightTeal.withOpacity(0.3)
+                    : AppTheme.primaryTeal.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Text('🙏', style: TextStyle(fontSize: 18)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Radha Soami Ji ${provider.isVolunteerNameSet ? "• ${provider.volunteerName}" : ""}',
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : AppTheme.primaryTeal,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        'Perform every seva with love, truth, and humility.',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.teal[100] : Colors.teal[900],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
 
           // Simple Search Bar
           Padding(
