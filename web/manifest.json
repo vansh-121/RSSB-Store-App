@@ -1,6 +1,6 @@
 {
-    "name": "rssb_store_app",
-    "short_name": "rssb_store_app",
+    "name": "RSSB Store",
+    "short_name": "RSSB Store",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
